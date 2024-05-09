@@ -20,7 +20,7 @@ export default class queryDB {
             if(type == 'POST') {
                 options.body = JSON.stringify(objData);
                 options.headers = { 'Content-Type': 'application/json' };
-                options.mode = "no-cors";
+                //options.mode = "no-cors";
 
             }
             const response = await fetch(this.URL + strParam, options);
@@ -30,6 +30,7 @@ export default class queryDB {
                     json = await response.json();
                 }  
             }
+            console.log('Статус: ' + response.ok);
             return {'status': response.status, 'data': json};
         } catch(err) {
             console.log(err);

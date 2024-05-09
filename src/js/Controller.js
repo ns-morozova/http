@@ -12,13 +12,8 @@ export default class Controller {
         const btn = document.querySelector('.ticket-add');
         btn.addEventListener('click', this.onClickAddTicket.bind(this));
 
-        const formAdd = document.querySelector('.form-popup-add');
-        formAdd.querySelector('.btn-cancel').addEventListener('click', this.onClickCancelAdd.bind(this));
-        formAdd.querySelector('.btn-ok').addEventListener('click', this.onClickOkAdd.bind(this));
-
-        const formEdit = document.querySelector('.form-popup-edit');
-        formEdit.querySelector('.btn-cancel').addEventListener('click', this.onClickCancelEdit.bind(this));
-        formEdit.querySelector('.btn-ok').addEventListener('click', this.onClickOkEdit.bind(this));
+        this.container.addEventListener('edit', this.onClickEdit.bind(this));
+        this.container.addEventListener('delete', this.onClickDelete.bind(this));
 
         queryDB.query('GET', { 'method': 'allTickets' }).then((response) => {
             if(response.status !== 200) {
@@ -34,11 +29,17 @@ export default class Controller {
 
     addTiket(objTicket){
         let ticket = document.createElement('div');
+        ticket.id = objTicket.id;
         ticket.classList.add('ticket');
         ticket.innerHTML = `
                     <div class="task">
-                            <input type="checkbox" id="scales" name="scales" ${objTicket.status ? 'checked' : ''}/>
-                            <label for="scales">${objTicket.name}</label>
+                            <div class="inp-check">
+                                 <img class="img-check ${objTicket.checked ? '' : 'hidden'}" src="checkmark_0btrup04y0p6.svg" width="14" height="14">
+                            </div>
+                            <div class="descrs">
+                                <span>${objTicket.name}</span> 
+                                <span class="descr hidden">${objTicket.description}</span>
+                            </div>    
                     </div>
 
                     <div class="info">
@@ -54,6 +55,7 @@ export default class Controller {
         this.tickets.push(new Ticket(ticket));
     }
 
+
     onClickAddTicket(event) {
         event.preventDefault();
 
@@ -66,6 +68,7 @@ export default class Controller {
             }
             const date = new Date();
             objData.created = Math.floor(date.getTime() / 1000);
+            objData.checked = false;
 
             queryDB.query('POST', { 'method': 'createTicket' }, objData).then((response) => {
                 if (response.status == 200) {
@@ -84,12 +87,56 @@ export default class Controller {
         event.preventDefault();
     }
 
-    onClickCancelEdit(event) {
+
+    onClickEdit(event) {
         event.preventDefault();
+        queryDB.query('GET', { 'method': 'ticketById', 'id':  event.detail}).then((response) => {
+            if (response.status == 200) {
+                const modal = new Modal(2, response.data);
+                const promise = modal.show();
+                promise.then((resolve) => {
+                    const objData = resolve.data;
+                    if (!objData) {
+                        return;
+                    }
+                    queryDB.query('POST', { 'method': 'updateById', 'id': objData.id }, objData).then((response) => {
+                        if (response.status == 200) {
+                            const ticket = this.container.querySelector(`[id="${objData.id}"]`);
+                            const label = ticket.querySelector('[for="scales"]');
+                            label.textContent = objData.name;
+                        }
+                    });
+                });
+
+            }
+        });
     }
 
-    onClickOkEdit(event) {
+    onClickDelete(event) {
         event.preventDefault();
+
+        queryDB.query('GET', { 'method': 'ticketById', 'id': event.detail }).then((response) => {
+            if (response.status == 200) {
+                const modal = new Modal(3, response.data);
+                const promise = modal.show();
+                promise.then((resolve) => {
+                    const objData = resolve.data;
+                    if (!objData) {
+                        return;
+                    }
+                    queryDB.query('DELETE', { 'method': 'deleteById', 'id': objData.id }).then((response) => {
+                        if (response.status == 200) {
+                            const ticket = this.container.querySelector(`[id="${event.detail}"]`);
+                            const tickArr = this.tickets.find((elem) => elem == ticket);
+                            this.tickets.splice(this.tickets.indexOf(tickArr), 1);
+                            ticket.remove();
+                        }
+                    });
+                });
+
+            }
+        });
+
     }
 
     getFormatData(timestamp){
