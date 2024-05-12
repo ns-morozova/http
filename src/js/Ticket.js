@@ -21,7 +21,6 @@ export default class Ticket {
 
     onClickTicket(event) {
         event.preventDefault();
-        debugger;
         if (event.target.classList.contains('icon-edit') || event.target.classList.contains('icon-delete') || event.target.closest('.inp-check')) {
             return;
         }
@@ -43,8 +42,8 @@ export default class Ticket {
                 objData.checked = checked;
 
                 queryDB.query('POST', { 'method': 'updateById', 'id': objData.id }, objData).then((response) => {
-                    if (response.status == 200) {
-                       
+                    if (!response.status == 200) {
+                       console.log(response);
                     }
                 });
 

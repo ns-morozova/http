@@ -37,7 +37,7 @@ export default class Controller {
                                  <img class="img-check ${objTicket.checked ? '' : 'hidden'}" src="checkmark_0btrup04y0p6.svg" width="14" height="14">
                             </div>
                             <div class="descrs">
-                                <span>${objTicket.name}</span> 
+                                <span class="descr-short">${objTicket.name}</span> 
                                 <span class="descr hidden">${objTicket.description}</span>
                             </div>    
                     </div>
@@ -102,7 +102,7 @@ export default class Controller {
                     queryDB.query('POST', { 'method': 'updateById', 'id': objData.id }, objData).then((response) => {
                         if (response.status == 200) {
                             const ticket = this.container.querySelector(`[id="${objData.id}"]`);
-                            const label = ticket.querySelector('[for="scales"]');
+                            const label = ticket.querySelector('.descr-short');
                             label.textContent = objData.name;
                         }
                     });
